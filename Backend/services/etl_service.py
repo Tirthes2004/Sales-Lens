@@ -20,12 +20,18 @@ COLUMN_ALIASES = {
     ],
     "region": [
         "area",
+        "branch",
+        "city",
+        "country",
+        "location",
         "territory",
         "state",
     ],
     "product": [
         "item",
+        "category",
         "product_name",
+        "product_line",
         "sku",
     ],
     "quantity": [
@@ -54,9 +60,11 @@ COLUMN_ALIASES = {
         "amount",
         "total",
         "total_amount",
+        "gross_sales",
     ],
     "profit": [
         "margin",
+        "gross_income",
         "gross_profit",
         "net_profit",
     ],
@@ -136,6 +144,13 @@ def apply_column_aliases(dataframe):
 
 
 def derive_missing_columns(dataframe):
+    columns = set(dataframe.columns)
+
+    if "total_sales" not in columns and {"quantity", "unit_price"} <= columns:
+        quantity = pd.to_numeric(dataframe["quantity"], errors="coerce").fillna(0)
+        unit_price = pd.to_numeric(dataframe["unit_price"], errors="coerce").fillna(0)
+        dataframe["total_sales"] = quantity * unit_price
+
     if "unit_price" not in dataframe.columns and {"total_sales", "quantity"} <= set(dataframe.columns):
         quantity = pd.to_numeric(dataframe["quantity"], errors="coerce").fillna(0)
         total_sales = pd.to_numeric(dataframe["total_sales"], errors="coerce").fillna(0)
@@ -145,6 +160,10 @@ def derive_missing_columns(dataframe):
         total_sales = pd.to_numeric(dataframe["total_sales"], errors="coerce").fillna(0)
         profit = pd.to_numeric(dataframe["profit"], errors="coerce").fillna(0)
         dataframe["cost"] = total_sales - profit
+
+    if "cost" not in dataframe.columns:
+        # Some sales reports contain revenue only. Keep the row loadable and mark cost as 0.
+        dataframe["cost"] = 0
 
     return dataframe
 

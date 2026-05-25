@@ -122,17 +122,33 @@ sales-uploads/<upload_id>/<generated-file-id>.<extension>
 
 - read CSV/XLSX files
 - normalize column names
+- map common column aliases
+- derive missing values where possible
 - validate required columns
 - remove duplicates
 - handle null values
 - format dates
 - calculate total sales, profit, and profit margin
 
-Expected input columns:
+Preferred input columns:
 
 ```text
 order_date, region, product, quantity, unit_price, cost
 ```
+
+Supported examples:
+
+```text
+branch -> region
+product_line -> product
+qty -> quantity
+price -> unit_price
+revenue or total -> total_sales
+cogs or total_cost -> cost
+gross_income or net_profit -> profit
+```
+
+If `cost` is missing, the ETL loads the report with `cost = 0`. This keeps revenue-only reports usable, but profit will equal sales unless the file includes cost or profit data.
 
 Profit formula:
 
