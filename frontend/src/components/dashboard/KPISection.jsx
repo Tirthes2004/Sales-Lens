@@ -1,3 +1,4 @@
+{/*in dev*/}
 const KPISection = ({ kpis }) => {
   return (
     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">

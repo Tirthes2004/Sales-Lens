@@ -2,298 +2,376 @@
 
 import { useRef, useState } from 'react';
 
-import { useNavigate } from 'react-router-dom';
-
-import toast from 'react-hot-toast';
-
 import {
-  FileSpreadsheet,
   UploadCloud,
+  FileSpreadsheet,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 
-import { parseCSV } from '../services/csvParser';
+import Papa from 'papaparse';
 
-import { parseExcel } from '../services/excelParser';
+import ExcelJS from 'exceljs';
+
+import { useNavigate } from 'react-router-dom';
 
 const Analyze = () => {
-  const navigate = useNavigate();
-
   const inputRef = useRef(null);
 
-  const [file, setFile] = useState(null);
+  const navigate = useNavigate();
 
-  const [dragActive, setDragActive] =
-    useState(false);
-
-  const [error, setError] = useState('');
+  const [selectedFile, setSelectedFile] =
+    useState(null);
 
   const [loading, setLoading] =
     useState(false);
 
-  const [progress, setProgress] =
-    useState(0);
+  const [error, setError] = useState('');
 
-  const allowedExtensions = [
-    'csv',
-    'xlsx',
-    'xls',
-  ];
+  const [dragging, setDragging] =
+    useState(false);
 
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  const validateFile = (file) => {
+    if (!file) return false;
 
-  // VALIDATE FILE
-  const validateFile = (selectedFile) => {
-    const extension =
-      selectedFile.name.split('.').pop();
+    const allowedExtensions = [
+      '.csv',
+      '.xlsx',
+      '.xls',
+    ];
 
-    // FILE TYPE
-    if (
-      !allowedExtensions.includes(
-        extension.toLowerCase()
-      )
-    ) {
+    const fileName =
+      file.name.toLowerCase();
+
+    return allowedExtensions.some(
+      (ext) =>
+        fileName.endsWith(ext)
+    );
+  };
+
+  const parseCSV = (file) => {
+    return new Promise(
+      (resolve, reject) => {
+        Papa.parse(file, {
+          header: true,
+          skipEmptyLines: true,
+
+          complete: (results) => {
+            resolve(results.data);
+          },
+
+          error: (err) => {
+            reject(err);
+          },
+        });
+      }
+    );
+  };
+
+  const parseExcel = async (file) => {
+    const workbook =
+      new ExcelJS.Workbook();
+
+    const buffer =
+      await file.arrayBuffer();
+
+    await workbook.xlsx.load(buffer);
+
+    const worksheet =
+      workbook.worksheets[0];
+
+    const rows = [];
+
+    worksheet.eachRow(
+      (row, rowNumber) => {
+        rows.push(row.values);
+      }
+    );
+
+    return rows;
+  };
+
+  const handleFileSelect = (
+    file
+  ) => {
+    setError('');
+
+    if (!validateFile(file)) {
       setError(
         'Only CSV and Excel files are allowed.'
       );
 
-      return false;
+      setSelectedFile(null);
+
+      return;
     }
 
-    // FILE SIZE
-    if (
-      selectedFile.size > MAX_FILE_SIZE
-    ) {
-      setError(
-        'File size must be less than 5MB.'
-      );
-
-      return false;
-    }
-
-    // EMPTY FILE
-    if (selectedFile.size === 0) {
-      setError('File is empty.');
-
-      return false;
-    }
-
-    setError('');
-
-    return true;
+    setSelectedFile(file);
   };
 
-  // HANDLE FILE
-  const handleFile = (selectedFile) => {
-    if (!selectedFile) return;
-
-    const valid = validateFile(selectedFile);
-
-    if (!valid) return;
-
-    setFile(selectedFile);
-  };
-
-  // INPUT CHANGE
-  const handleChange = (e) => {
-    const selectedFile = e.target.files[0];
-
-    handleFile(selectedFile);
-  };
-
-  // DRAG OVER
-  const handleDragOver = (e) => {
-    e.preventDefault();
-
-    setDragActive(true);
-  };
-
-  // DRAG LEAVE
-  const handleDragLeave = () => {
-    setDragActive(false);
-  };
-
-  // DROP
   const handleDrop = (e) => {
     e.preventDefault();
 
-    setDragActive(false);
+    setDragging(false);
 
-    const droppedFile =
+    const file =
       e.dataTransfer.files[0];
 
-    handleFile(droppedFile);
+    handleFileSelect(file);
   };
 
-  // ANALYZE FILE
-  const handleAnalyze = async () => {
-    if (!file) return;
+  const handleAnalyze =
+    async () => {
+      try {
+        setLoading(true);
 
-    try {
-      setLoading(true);
+        setError('');
 
-      setProgress(20);
+        if (!selectedFile) {
+          setError(
+            'Please select a file.'
+          );
 
-      const extension =
-        file.name.split('.').pop();
+          setLoading(false);
 
-      let parsedData = [];
+          return;
+        }
 
-      // CSV
-      if (
-        extension.toLowerCase() === 'csv'
-      ) {
-        parsedData = await parseCSV(file);
+        /*
+          optional frontend parsing
+        */
+
+        if (
+          selectedFile.name.endsWith(
+            '.csv'
+          )
+        ) {
+          await parseCSV(
+            selectedFile
+          );
+        }
+
+        if (
+          selectedFile.name.endsWith(
+            '.xlsx'
+          ) ||
+          selectedFile.name.endsWith(
+            '.xls'
+          )
+        ) {
+          await parseExcel(
+            selectedFile
+          );
+        }
+
+        /*
+          send file to backend
+        */
+
+        const formData =
+          new FormData();
+
+        /*
+          Backend serializer expects "file"
+        */
+
+        formData.append(
+          'file',
+          selectedFile
+        );
+
+        const response =
+          await fetch(
+            'http://127.0.0.1:8000/api/upload/',
+            {
+              method: 'POST',
+
+              body: formData,
+            }
+          );
+
+        /*
+          parse backend response 
+        */
+
+        const data =
+          await response.json();
+
+        /*
+          backend response error
+        */
+
+        if (!response.ok) {
+          console.error(
+            'Backend Error:',
+            data
+          );
+
+          throw new Error(
+            JSON.stringify(data)
+          );
+        }
+
+        /*
+          success message
+        */
+
+        console.log(
+          'Upload Success:',
+          data
+        );
+
+        /*
+          Navigate to dashboard
+        */
+
+        navigate('/dashboard', {
+          state: {
+            dashboardData: data,
+          },
+        });
+      } catch (err) {
+        console.error(err);
+
+        setError(
+          err.message ||
+            'Upload failed.'
+        );
+      } finally {
+        setLoading(false);
       }
-
-      // EXCEL
-      else {
-        parsedData = await parseExcel(file);
-      }
-
-      setProgress(60);
-
-      // STORE TEMPORARY DATA
-      sessionStorage.setItem(
-        'uploadedFileData',
-        JSON.stringify(parsedData)
-      );
-
-      sessionStorage.setItem(
-        'uploadedFileName',
-        file.name
-      );
-
-      setProgress(100);
-
-      toast.success(
-        'File parsed successfully'
-      );
-
-      // NAVIGATE TO DASHBOARD
-      navigate('/dashboard');
-    } catch (error) {
-      console.error(error);
-
-      toast.error('Analysis failed');
-    } finally {
-      setLoading(false);
-
-      setTimeout(() => {
-        setProgress(0);
-      }, 1200);
-    }
-  };
+    };
 
   return (
     <section
       id="analyze"
-      className="relative z-10 mx-auto max-w-6xl px-6 py-16 lg:px-8"
+      className="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-20"
     >
-      <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 backdrop-blur-2xl sm:p-7 lg:p-8">
-        {/* TOP */}
-        <div className="max-w-2xl">
-          <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/70">
-            Analyze Files
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(6,182,212,0.12),transparent_40%)]" />
+
+      <div className="relative z-10 mx-auto w-full max-w-4xl">
+        {/* header */}
+
+        <div className="mb-14 text-center">
+          <p className="font-retro text-cyan-300">
+            AI DATA ANALYTICS
           </p>
 
-          <h2 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
-            Upload spreadsheets instantly.
+          <h2 className="mt-4 font-hero text-5xl text-white md:text-6xl">
+            Upload & Analyze
           </h2>
 
-          <p className="mt-3 text-sm leading-6 text-white/55 sm:text-base">
-            Drag & drop CSV and Excel files to
-            generate realtime analytics.
+          <p className="mx-auto mt-5 max-w-2xl font-body text-lg text-white/55">
+            Drag and drop your CSV
+            or Excel files to
+            generate intelligent
+            business dashboards.
           </p>
         </div>
 
-        {/* DROPZONE */}
+        {/* dropzone */}
+
         <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
+          onDragOver={(e) => {
+            e.preventDefault();
+
+            setDragging(true);
+          }}
+          onDragLeave={() =>
+            setDragging(false)
+          }
           onDrop={handleDrop}
-          className={`mt-8 rounded-[24px] border border-dashed p-6 text-center transition-all sm:p-8 ${
-            dragActive
-              ? 'border-cyan-400 bg-cyan-400/10'
-              : 'border-cyan-400/20 bg-[#081120]/80'
+          className={`relative rounded-[32px] border border-white/10 bg-white/[0.03] p-10 backdrop-blur-2xl transition-all duration-300 ${
+            dragging
+              ? 'scale-[1.01] border-cyan-400/40 bg-cyan-400/5'
+              : ''
           }`}
         >
-          {/* ICON */}
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-cyan-400/10">
-            {file ? (
-              <FileSpreadsheet className="h-8 w-8 text-cyan-300" />
-            ) : (
-              <UploadCloud className="h-8 w-8 text-cyan-300" />
-            )}
-          </div>
-
-          {/* FILE NAME */}
-          <h3 className="mt-5 text-xl font-semibold sm:text-2xl">
-            {file
-              ? file.name
-              : 'Drag & Drop File'}
-          </h3>
-
-          <p className="mt-2 text-sm text-white/50">
-            Supported: .csv .xlsx .xls
-          </p>
-
-          {/* ERROR */}
-          {error && (
-            <p className="mt-4 text-sm text-red-400">
-              {error}
-            </p>
-          )}
-
-          {/* INPUT */}
           <input
             ref={inputRef}
             type="file"
             accept=".csv,.xlsx,.xls"
-            className="hidden"
-            onChange={handleChange}
+            hidden
+            onChange={(e) =>
+              handleFileSelect(
+                e.target.files[0]
+              )
+            }
           />
 
-          {/* BUTTONS */}
-          <div className="mt-6 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <button
-              onClick={() =>
-                inputRef.current.click()
-              }
-              className="rounded-full bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-[#020617] transition hover:scale-[1.03]"
-            >
-              Select File
-            </button>
-
-            {file && (
-              <button
-                onClick={handleAnalyze}
-                disabled={loading}
-                className="rounded-full border border-white/10 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-50"
-              >
-                {loading
-                  ? 'Processing...'
-                  : 'Analyze File'}
-              </button>
-            )}
-          </div>
-
-          {/* PROGRESS */}
-          {progress > 0 && (
-            <div className="mt-6">
-              <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                <div
-                  style={{
-                    width: `${progress}%`,
-                  }}
-                  className="h-full rounded-full bg-cyan-400 transition-all duration-500"
-                />
-              </div>
-
-              <p className="mt-2 text-sm text-white/50">
-                Progress: {progress}%
-              </p>
+          <div className="flex flex-col items-center justify-center text-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-cyan-400/10">
+              <UploadCloud className="h-11 w-11 text-cyan-300" />
             </div>
-          )}
+
+            <h3 className="mt-6 text-2xl font-semibold text-white">
+              Drag & Drop Files
+            </h3>
+
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/45">
+              Supported formats:
+              CSV, XLSX, XLS.
+              Upload your business
+              reports and analyze
+              them instantly with AI
+              dashboards.
+            </p>
+
+            {/* file name */}
+
+            {selectedFile && (
+              <div className="mt-8 flex items-center gap-3 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-4">
+                <FileSpreadsheet className="h-5 w-5 text-cyan-300" />
+
+                <span className="text-sm text-white/80">
+                  {
+                    selectedFile.name
+                  }
+                </span>
+              </div>
+            )}
+
+            {/* error */}
+
+            {error && (
+              <div className="mt-6 flex items-center gap-2 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                <AlertCircle className="h-4 w-4" />
+
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* buttons */}
+
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+              <button
+                onClick={() =>
+                  inputRef.current.click()
+                }
+                className="rounded-full bg-white/5 px-7 py-3 text-sm font-medium text-white transition hover:bg-white/10"
+              >
+                Select File
+              </button>
+
+              <button
+                onClick={
+                  handleAnalyze
+                }
+                disabled={loading}
+                className="flex items-center gap-2 rounded-full bg-cyan-400 px-7 py-3 text-sm font-semibold text-[#020617] transition hover:scale-[1.03] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+
+                    Processing...
+                  </>
+                ) : (
+                  'Analyze File'
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import {
   Loader2,
@@ -10,6 +14,7 @@ import KPISection from '../components/dashboard/KPISection';
 import RevenueChart from '../components/dashboard/RevenueChart';
 
 import ProductChart from '../components/dashboard/ProductChart';
+
 import RegionalChart from '../components/dashboard/RegionalChart';
 
 import MonthlyComparisonChart from '../components/dashboard/MonthlyComparisonChart';
@@ -20,7 +25,7 @@ import ExportButtons from '../components/dashboard/ExportButtons';
 
 import { exportDashboardPdf } from '../utils/exportPdf';
 
-import { exportKpiCsv } from '../utils/exportCSV';
+import { exportKpiCsv } from '../utils/exportCsv';
 
 const Dashboard = () => {
   const dashboardRef = useRef(null);
@@ -28,10 +33,24 @@ const Dashboard = () => {
   const [loading, setLoading] =
     useState(true);
 
-  const [dashboardData, setDashboardData] =
-    useState(null);
-
   const [error, setError] = useState('');
+
+  const [kpis, setKpis] = useState([]);
+
+  const [revenueTrend, setRevenueTrend] =
+    useState([]);
+
+  const [topProducts, setTopProducts] =
+    useState([]);
+
+  const [regionalBreakdown,
+    setRegionalBreakdown] = useState([]);
+
+  const [monthlyComparison,
+    setMonthlyComparison] = useState([]);
+
+  const [narrative, setNarrative] =
+    useState('');
 
   useEffect(() => {
     const fetchDashboardData =
@@ -39,52 +58,84 @@ const Dashboard = () => {
         try {
           setLoading(true);
 
-          const storedData =
-            sessionStorage.getItem(
-              'uploadedFileData'
-            );
+          const BASE_URL =
+            'http://127.0.0.1:8000/api';
 
-          const fileName =
-            sessionStorage.getItem(
-              'uploadedFileName'
-            );
+          const [
+            dashboardRes,
+            salesRes,
+            profitRes,
+            regionRes,
+            productRes,
+          ] = await Promise.all([
+            fetch(
+              `${BASE_URL}/analytics/dashboard/`
+            ),
 
-            if (!storedData) {
+            fetch(
+              `${BASE_URL}/analytics/sales/`
+            ),
+
+            fetch(
+              `${BASE_URL}/analytics/profit/`
+            ),
+
+            fetch(
+              `${BASE_URL}/analytics/regions/`
+            ),
+
+            fetch(
+              `${BASE_URL}/analytics/products/`
+            ),
+          ]);
+
+          if (
+            !dashboardRes.ok ||
+            !salesRes.ok ||
+            !profitRes.ok ||
+            !regionRes.ok ||
+            !productRes.ok
+          ) {
             throw new Error(
-              'No uploaded file found.'
+              'Failed to fetch analytics data.'
             );
           }
 
-          const parsedData =
-            JSON.parse(storedData);
+          const dashboardData =
+            await dashboardRes.json();
 
-          const response = await fetch(
-            'VITE_API_URL',
-            {
-              method: 'POST',
+          const salesData =
+            await salesRes.json();
 
-               headers: {
-                'Content-Type':
-                  'application/json',
-              },
+          const profitData =
+            await profitRes.json();
 
-              body: JSON.stringify({
-                fileName,
-                data: parsedData,
-              }),
-            }
+          const regionData =
+            await regionRes.json();
+
+          const productData =
+            await productRes.json();
+
+          setKpis(
+            dashboardData.kpis || []
           );
 
-           if (!response.ok) {
-            throw new Error(
-              'Backend request failed.'
-            );
-          }
+          setNarrative(
+            dashboardData.narrative ||
+              ''
+          );
 
-          const result =
-            await response.json();
+          setRevenueTrend(salesData);
 
-          setDashboardData(result);
+          setMonthlyComparison(
+            profitData
+          );
+
+          setRegionalBreakdown(
+            regionData
+          );
+
+          setTopProducts(productData);
         } catch (err) {
           console.error(err);
 
@@ -94,7 +145,7 @@ const Dashboard = () => {
         }
       };
 
-      fetchDashboardData();
+    fetchDashboardData();
   }, []);
 
   if (loading) {
@@ -105,14 +156,14 @@ const Dashboard = () => {
         </div>
 
         <h2 className="mt-8 text-3xl font-bold">
-          Processing Analytics...
+          Loading Dashboard...
         </h2>
 
         <p className="mt-4 text-white/55">
           Waiting for backend response.
         </p>
       </div>
-      );
+    );
   }
 
   if (error) {
@@ -120,7 +171,7 @@ const Dashboard = () => {
       <div className="flex min-h-screen items-center justify-center bg-[#020617] text-white">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-red-400">
-            Something went wrong
+            Backend Connection Failed
           </h2>
 
           <p className="mt-4 text-white/55">
@@ -129,18 +180,7 @@ const Dashboard = () => {
         </div>
       </div>
     );
-    }
-
-  if (!dashboardData) return null;
-
-  const {
-    kpis,
-    revenueTrend,
-    topProducts,
-    regionalBreakdown,
-    monthlyComparison,
-    narrative,
-  } = dashboardData;
+  }
 
   return (
     <div className="min-h-screen bg-[#020617] text-white">
@@ -200,7 +240,6 @@ const Dashboard = () => {
           data={monthlyComparison}
         />
 
-
         <NarrativeSection
           narrative={narrative}
         />
@@ -210,3 +249,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+ 
