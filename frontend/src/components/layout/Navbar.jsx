@@ -93,7 +93,7 @@ const Navbar = () => {
 
             {/* RIGHT */}
             <div className="hidden items-center gap-3 md:flex">
-              <button className="rounded-full bg-white/[0.04] px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/[0.08]">
+              <button className="rounded-full bg-white/[0.04] px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/[0.08] border">
                 Login
               </button>
 

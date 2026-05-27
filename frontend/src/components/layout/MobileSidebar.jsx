@@ -113,7 +113,7 @@ const MobileSidebar = ({
 
             {/* AUTH BUTTONS */}
             <div className="mt-auto space-y-3 pt-10">
-              <button className="w-full rounded-2xl bg-white/5 py-4 text-sm font-medium text-white/80">
+              <button className="w-full rounded-2xl bg-white/5 py-4 text-sm font-medium text-white/80 border">
                 Login
               </button>
 

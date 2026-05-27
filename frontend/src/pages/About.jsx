@@ -4,7 +4,7 @@ const About = () => {
   return (
     <section
       id="about"
-      className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-8"
+      className="relative z-10 mx-auto max-w-7xl px-6 py-28 lg:px-8"
     >
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <div>
