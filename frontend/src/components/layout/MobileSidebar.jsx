@@ -74,11 +74,11 @@ const MobileSidebar = ({
                 </div>
 
                 <div>
-                  <h2 className="font-semibold">
+                  <h2 className="font-kpi font-semibold">
                     Sales Lens
                   </h2>
 
-                  <p className="text-xs text-white/45">
+                  <p className="font-handwritten text-xs text-white/45">
                     AI Analytics
                   </p>
                 </div>
@@ -102,7 +102,7 @@ const MobileSidebar = ({
                       item.id
                     )
                   }
-                  className="flex w-full items-center justify-between rounded-2xl bg-white/5 px-5 py-4 text-left text-sm font-medium text-white/80"
+                  className="font-kpi flex w-full items-center justify-between rounded-2xl bg-white/5 px-5 py-4 text-left text-sm font-medium text-white/80"
                 >
                   {item.name}
 
@@ -113,11 +113,11 @@ const MobileSidebar = ({
 
             {/* AUTH BUTTONS */}
             <div className="mt-auto space-y-3 pt-10">
-              <button className="w-full rounded-2xl bg-white/5 py-4 text-sm font-medium text-white/80 border">
+              <button className="font-kpi w-full rounded-2xl bg-white/5 py-4 text-sm font-medium text-white/80 border">
                 Login
               </button>
 
-              <button className="w-full rounded-2xl bg-cyan-400 py-4 text-sm font-semibold text-[#020617]">
+              <button className="font-kpi w-full rounded-2xl bg-cyan-400 py-4 text-sm font-semibold text-[#020617]">
                 Sign Up
               </button>
             </div>

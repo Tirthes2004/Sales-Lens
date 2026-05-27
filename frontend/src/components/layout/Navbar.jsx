@@ -64,11 +64,11 @@ const Navbar = () => {
               </div>
 
               <div>
-                <h1 className="text-sm font-semibold tracking-wide text-white">
+                <h1 className="font-kpi text-sm font-semibold tracking-wide text-white">
                   Sales Lens
                 </h1>
 
-                <p className="text-[11px] text-white/45">
+                <p className="font-handwritten text-[11px] text-white/45">
                   AI Analytics
                 </p>
               </div>
@@ -84,7 +84,7 @@ const Navbar = () => {
                       link.id
                     )
                   }
-                  className="text-sm font-medium text-white/65 transition hover:text-cyan-300"
+                  className="font-kpi text-sm font-medium text-white/65 transition hover:text-cyan-300"
                 >
                   {link.name}
                 </button>
@@ -93,11 +93,11 @@ const Navbar = () => {
 
             {/* RIGHT */}
             <div className="hidden items-center gap-3 md:flex">
-              <button className="rounded-full bg-white/[0.04] px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/[0.08] border">
+              <button className="font-kpi rounded-full bg-white/[0.04] px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/[0.08] border">
                 Login
               </button>
 
-              <button className="rounded-full bg-cyan-400 px-5 py-2 text-sm font-semibold text-[#020617] transition hover:scale-[1.03]">
+              <button className="font-kpi rounded-full bg-cyan-400 px-5 py-2 text-sm font-semibold text-[#020617] transition hover:scale-[1.03]">
                 Sign Up
               </button>
             </div>

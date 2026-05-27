@@ -8,11 +8,11 @@ const About = () => {
     >
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <div>
-          <p className="text-sm uppercase tracking-[0.35em] text-cyan-300/70">
+          <p className="font-pixel text-sm uppercase tracking-[0.35em] text-cyan-300/70">
             About Company
           </p>
 
-          <h2 className="mt-4 text-5xl font-bold leading-tight">
+          <h2 className="font-handwritten mt-4 text-5xl font-bold leading-tight">
             Building futuristic analytics experiences.
           </h2>
 
@@ -53,7 +53,7 @@ const About = () => {
             >
               <Building2 className="h-8 w-8 text-cyan-300" />
 
-              <h3 className="mt-5 text-3xl font-bold">
+              <h3 className="font-kpi mt-5 text-3xl font-bold">
                 {card.title}
               </h3>
 

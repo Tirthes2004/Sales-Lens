@@ -50,7 +50,7 @@ const Home = () => {
             key={item.label}
             className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-2xl"
           >
-            <h2 className="text-4xl font-bold">
+            <h2 className="font-kpi text-4xl font-bold">
               {item.value}
             </h2>
 

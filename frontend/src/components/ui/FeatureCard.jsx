@@ -5,7 +5,7 @@ const FeatureCard = ({ icon: Icon, title, description }) => {
         <Icon className="h-6 w-6" />
       </div>
 
-      <h3 className="mt-6 text-xl font-semibold">
+      <h3 className="font-kpi mt-6 text-xl font-semibold">
         {title}
       </h3>
 

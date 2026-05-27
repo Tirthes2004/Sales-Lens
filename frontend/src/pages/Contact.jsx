@@ -12,11 +12,11 @@ const Contact = () => {
     >
       <div className="grid gap-10 lg:grid-cols-2">
         <div>
-          <p className="text-sm uppercase tracking-[0.35em] text-cyan-300/70">
+          <p className="font-pixel text-sm uppercase tracking-[0.35em] text-cyan-300/70">
             Contact Us
           </p>
 
-          <h2 className="mt-4 text-5xl font-bold leading-tight">
+          <h2 className="font-handwritten mt-4 text-5xl font-bold leading-tight">
             Let’s build something amazing.
           </h2>
 
@@ -56,7 +56,7 @@ const Contact = () => {
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-semibold">
+                  <h3 className="font-kpi text-xl font-semibold">
                     {item.title}
                   </h3>
 

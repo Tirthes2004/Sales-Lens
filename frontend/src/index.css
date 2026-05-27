@@ -6,3 +6,32 @@ html {
 body {
   background: #020617;
 }
+
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.font-hero {
+  font-family: 'Bungee Shade', cursive;
+}
+
+.font-body {
+  font-family: 'Roboto', sans-serif;
+}
+
+.font-retro {
+  font-family: 'VT323', monospace;
+}
+
+.font-pixel {
+  font-family: 'Press Start 2P', cursive;
+}
+
+.font-handwritten {
+  font-family: 'Caveat', cursive;
+}
+
+.font-kpi {
+  font-family: 'Bitcount Grid Single', monospace;
+}

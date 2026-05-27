@@ -7,6 +7,17 @@ import './index.css';
 
 import { Toaster } from 'react-hot-toast';
 
+import '@fontsource/caveat';
+
+import '@fontsource/bungee-shade';
+
+import '@fontsource/press-start-2p';
+
+import '@fontsource/vt323';
+
+import '@fontsource/roboto/400.css';
+
+
 ReactDOM.createRoot(
   document.getElementById('root')
 ).render(

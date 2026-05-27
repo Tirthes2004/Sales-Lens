@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-6 py-10 lg:flex-row lg:px-8">
         {/* LEFT */}
         <div className="max-w-md">
-          <h2 className="text-2xl font-bold tracking-tight text-white">
+          <h2 className="font-handwritten text-2xl font-bold tracking-tight text-white">
             Sales Lens
           </h2>
 
@@ -59,7 +59,7 @@ const Footer = () => {
                 });
                 }
             }}
-            className="transition hover:text-cyan-300"
+            className="font-kpi transition hover:text-cyan-300"
             >
             {link.name}
             </button>
