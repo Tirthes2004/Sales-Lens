@@ -1,3 +1,4 @@
+{/* using excelJs for excel file parsing */}
 import ExcelJS from 'exceljs';
 
 export const parseExcel = async (file) => {
@@ -17,12 +18,12 @@ export const parseExcel = async (file) => {
   worksheet.eachRow((row, rowNumber) => {
     const values = row.values.slice(1);
 
-    // HEADER ROW
+    // Row header
     if (rowNumber === 1) {
       headers = values;
     }
 
-    // DATA ROWS
+    // Rows data
     else {
       const rowData = {};
 

@@ -1,3 +1,4 @@
+{/* using papaparse for csv parsing */}
 import Papa from 'papaparse';
 
 export const parseCSV = (file) => {

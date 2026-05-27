@@ -1,3 +1,4 @@
+{/* all parameters are parsed in this component to create those cards in feature section*/}
 const FeatureCard = ({ icon: Icon, title, description }) => {
   return (
     <div className="rounded-[28px] border border-white/10 bg-white/5 p-6 backdrop-blur-2xl transition hover:-translate-y-2 hover:border-cyan-400/20">

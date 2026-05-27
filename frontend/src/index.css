@@ -1,4 +1,11 @@
+/*  
+we are using taiwindcss and importing it into index.css file
+so no need for taiwindcss.config.js file
+*/
+
 @import "tailwindcss";
+
+/* for smooth scrolling experience */
 html {
   scroll-behavior: smooth;
 }
@@ -12,6 +19,7 @@ body {
   font-family: 'Roboto', sans-serif;
 }
 
+/* font style classes */
 .font-hero {
   font-family: 'Bungee Shade', cursive;
 }

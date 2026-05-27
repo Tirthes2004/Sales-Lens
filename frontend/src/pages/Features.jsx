@@ -1,5 +1,5 @@
 import FeatureCard from '../components/ui/FeatureCard';
-
+{/*import data for feature cards from landingData.js file*/}
 import { features } from '../data/landingData';
 
 const Features = () => {
@@ -8,6 +8,7 @@ const Features = () => {
       id="features"
       className="relative z-10 mx-auto max-w-7xl px-6 py-24 lg:px-8"
     >
+      {/* top part of feature section*/}
       <div className="max-w-2xl">
         <p className="font-pixel text-sm uppercase tracking-[0.35em] text-cyan-300/70">
           Platform Features
@@ -22,7 +23,7 @@ const Features = () => {
           spreadsheet analysis platforms.
         </p>
       </div>
-
+    {/* the feature data passed to create the feature card code section */}
       <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {features.map((feature) => (
           <FeatureCard

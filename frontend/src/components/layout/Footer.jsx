@@ -1,13 +1,11 @@
-// src/components/layout/Footer.jsx
-
 const Footer = () => {
   return (
     <footer className="relative overflow-hidden ">
-      {/* TOP LINE */}
+      {/* the line transparent to transparent */}
       <div className="mx-auto h-px max-w-7xl bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
 
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-8 px-6 py-10 lg:flex-row lg:px-8">
-        {/* LEFT */}
+        {/* left section */}
         <div className="max-w-md">
           <h2 className="font-handwritten text-2xl font-bold tracking-tight text-white">
             Sales Lens
@@ -20,8 +18,7 @@ const Footer = () => {
           </p>
         </div>
 
-        {/* CENTER */}
-        {/* CENTER */}
+        {/* central part */}
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/55">
         {[
             {
@@ -65,7 +62,7 @@ const Footer = () => {
             </button>
         ))}
         </div>
-        {/* RIGHT */}
+        {/* right section */}
         <div className="text-center lg:text-right">
           <p className="text-sm text-white/35">
             © 2026 Sales Lens
@@ -77,7 +74,7 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* BOTTOM CREDIT */}
+      {/* bottom attribution for logo */}
       <div className="border-t border-white/5 py-4 text-center">
         <a
           href="https://www.flaticon.com/free-icons/data-science"

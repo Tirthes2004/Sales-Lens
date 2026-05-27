@@ -1,9 +1,10 @@
+{/* importing from react-route dom  */}
 import {
   BrowserRouter,
   Routes,
   Route,
 } from 'react-router-dom';
-
+{/* importing from Home.jsx and Dashboard.jsx */}
 import Home from '../pages/Home';
 
 import Dashboard from '../pages/Dashboard';

@@ -7,14 +7,14 @@ const HeroSection = () => {
       id="home"
       className="relative flex min-h-screen items-center overflow-hidden pt-[72px]"
     >
-      {/* GLOW */}
+      {/* glow part */}
       <div className="absolute left-0 top-0 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl" />
 
       <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-violet-500/20 blur-3xl" />
 
       <div className="relative mx-auto flex w-full max-w-7xl items-center px-6 py-16 lg:px-8">
         <div className="max-w-4xl">
-          {/* BADGE */}
+          {/* badge icon  */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -25,7 +25,7 @@ const HeroSection = () => {
             AI Powered Spreadsheet Analytics
           </motion.div>
 
-          {/* TITLE */}
+          {/* title */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -42,7 +42,7 @@ const HeroSection = () => {
             </span>
           </motion.h1>
 
-          {/* DESCRIPTION */}
+          {/* description */}
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -54,7 +54,7 @@ const HeroSection = () => {
             insights using your backend engine.
           </motion.p>
 
-          {/* BUTTONS */}
+          {/* buttons to navigate to analyze section and dashboard */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}

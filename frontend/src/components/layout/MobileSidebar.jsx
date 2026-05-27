@@ -1,7 +1,7 @@
-// src/components/layout/MobileSidebar.jsx
-
 import { motion, AnimatePresence } from 'framer-motion';
 
+
+{/* lucide-react for logo*/}
 import {
   X,
   ArrowRight,
@@ -62,7 +62,7 @@ const MobileSidebar = ({
             }}
             className="absolute right-0 top-0 flex h-full w-[82%] max-w-sm flex-col bg-[#071120]/95 p-6"
           >
-            {/* TOP */}
+            {/* upper part of side bar */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-cyan-400/10">
@@ -84,6 +84,7 @@ const MobileSidebar = ({
                 </div>
               </div>
 
+              {/* close button */}
               <button
                 onClick={closeMenu}
                 className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5"
@@ -92,7 +93,7 @@ const MobileSidebar = ({
               </button>
             </div>
 
-            {/* NAV LINKS */}
+            {/* navigations links */}
             <div className="mt-10 space-y-3">
               {navLinks.map((item) => (
                 <button
@@ -111,7 +112,7 @@ const MobileSidebar = ({
               ))}
             </div>
 
-            {/* AUTH BUTTONS */}
+            {/* authentication button for future dev */}
             <div className="mt-auto space-y-3 pt-10">
               <button className="font-kpi w-full rounded-2xl bg-white/5 py-4 text-sm font-medium text-white/80 border">
                 Login

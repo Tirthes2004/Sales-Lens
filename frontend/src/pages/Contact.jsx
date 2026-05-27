@@ -11,6 +11,7 @@ const Contact = () => {
       className="relative z-10 mx-auto max-w-7xl px-6 py-40 lg:px-8"
     >
       <div className="grid gap-10 lg:grid-cols-2">
+        {/*the left part of contact page */}
         <div>
           <p className="font-pixel text-sm uppercase tracking-[0.35em] text-cyan-300/70">
             Contact Us
@@ -25,7 +26,7 @@ const Contact = () => {
             enterprise solutions and support.
           </p>
         </div>
-
+        {/*below data passed as parameters in map to create cards consisting respective data. icons are imported from lucide-react*/}
         <div className="space-y-6">
           {[
             {

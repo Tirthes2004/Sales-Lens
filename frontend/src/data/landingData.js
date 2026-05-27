@@ -1,3 +1,5 @@
+
+{/* icon logo with lucide-react and we are storing the featurs card data and metric card data in this landingData.js file.*/}
 import {
   Database,
   LineChart,

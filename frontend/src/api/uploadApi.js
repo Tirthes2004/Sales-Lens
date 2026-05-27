@@ -1,10 +1,11 @@
+{/*no use here*/}
 export const uploadFileToBackend = async (
   parsedData,
   fileName
 ) => {
   try {
     const response = await fetch(
-      'http://localhost:5000/analyze',
+      'http://localhost:8000/upoloads',
       {
         method: 'POST',
 

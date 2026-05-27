@@ -7,6 +7,7 @@ const About = () => {
       className="relative z-10 mx-auto max-w-7xl px-6 py-28 lg:px-8"
     >
       <div className="grid items-center gap-12 lg:grid-cols-2">
+        {/*left part of about section*/}
         <div>
           <p className="font-pixel text-sm uppercase tracking-[0.35em] text-cyan-300/70">
             About Company
@@ -27,7 +28,7 @@ const About = () => {
             experiences.
           </p>
         </div>
-
+        {/*the right section showing below data set as card using js map and Building2 from lucid-react as iogo*/}
         <div className="grid gap-6 sm:grid-cols-2">
           {[
             {

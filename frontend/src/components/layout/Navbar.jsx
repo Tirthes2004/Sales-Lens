@@ -1,5 +1,3 @@
-// src/components/layout/Navbar.jsx
-
 import { useState } from 'react';
 
 import {
@@ -53,7 +51,7 @@ const Navbar = () => {
       <header className="fixed left-0 top-0 z-50 w-full">
         <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
           <div className="flex h-[68px] items-center justify-between">
-            {/* LEFT */}
+            {/* left section */}
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl ">
                 <img
@@ -74,7 +72,7 @@ const Navbar = () => {
               </div>
             </div>
 
-            {/* CENTER */}
+            {/* central part */}
             <nav className="hidden items-center gap-8 md:flex">
               {navLinks.map((link) => (
                 <button
@@ -91,7 +89,7 @@ const Navbar = () => {
               ))}
             </nav>
 
-            {/* RIGHT */}
+            {/* right section in dev */}
             <div className="hidden items-center gap-3 md:flex">
               <button className="font-kpi rounded-full bg-white/[0.04] px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/[0.08] border">
                 Login
@@ -102,7 +100,7 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* MOBILE */}
+            {/* for mobile view  */}
             <button
               onClick={() =>
                 setMenuOpen(true)
