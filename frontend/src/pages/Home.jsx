@@ -12,6 +12,7 @@ import About from './About';
 import Features from './Features';
 import Analyze from './Analyze';
 import Contact from './Contact';
+import Footer from '../components/layout/Footer';
 
 const Home = () => {
   const {
@@ -73,51 +74,8 @@ const Home = () => {
       <Contact />
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/10 px-6 py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 text-center text-sm text-white/45 md:flex-row">
-          <p>
-            © 2026 Sales-Len Analytics. All rights
-            reserved.
-          </p>
-
-          <div className="flex items-center gap-6">
-            <a
-              href="#home"
-              className="transition hover:text-cyan-300"
-            >
-              Home
-            </a>
-
-            <a
-              href="#about"
-              className="transition hover:text-cyan-300"
-            >
-              About
-            </a>
-
-            <a
-              href="#features"
-              className="transition hover:text-cyan-300"
-            >
-              Features
-            </a>
-
-            <a
-              href="#analyze"
-              className="transition hover:text-cyan-300"
-            >
-              Analyze
-            </a>
-
-            <a
-              href="#contact"
-              className="transition hover:text-cyan-300"
-            >
-              Contact
-            </a>
-          </div>
-        </div>
-      </footer>
+      <Footer />
+        
     </div>
   );
 };
