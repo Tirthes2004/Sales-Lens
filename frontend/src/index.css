@@ -43,3 +43,25 @@ body {
 .font-kpi {
   font-family: 'Bitcount Grid Single', monospace;
 }
+
+@media print {
+  body {
+    background: white !important;
+  }
+
+  button {
+    display: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-break {
+    page-break-before: always;
+  }
+
+  .dashboard-card {
+    break-inside: avoid;
+  }
+}

@@ -1,853 +1,671 @@
 
 
-import { useEffect, useRef, useState } from 'react';
-
 import {
-  AlertTriangle,
-  Download,
-  FileDown,
-  Loader2,
-  Sparkles,
-  DollarSign,
-  TrendingUp,
-  ShoppingCart,
-  Activity,
-} from 'lucide-react';
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   ResponsiveContainer,
   LineChart,
   Line,
+  CartesianGrid,
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
   Legend,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
+  BarChart,
+  Bar,
+} from "recharts";
 
-import jsPDF from 'jspdf';
-
-import html2canvas from 'html2canvas';
-
-const API_BASE =
-  'http://127.0.0.1:8000/api';
 
 const Dashboard = () => {
-  const dashboardRef =
-    useRef(null);
+  const dashboardRef = useRef(null);
 
   const [loading, setLoading] =
     useState(true);
 
   const [error, setError] =
-    useState('');
+    useState("");
 
-  const [dashboardData,
-    setDashboardData] =
+  const [dashboardData, setDashboardData] =
     useState(null);
 
-  const [summary, setSummary] =
-    useState('');
+  const [salesData, setSalesData] =
+    useState(null);
 
-  const [summaryLoading,
-    setSummaryLoading] =
-    useState(true);
+  const [profitData, setProfitData] =
+    useState(null);
 
-  /*
-    FETCH JSON HELPER
-  */
+  const [regionsData, setRegionsData] =
+    useState([]);
 
-  const fetchJson =
-    async (url) => {
-      const response =
-        await fetch(url);
+  const [productsData, setProductsData] =
+    useState([]);
+
+  const [aiSummary, setAiSummary] =
+    useState("");
+
+  const COLORS = [
+    "#ef4444",
+    "#22c55e",
+    "#3b82f6",
+    "#eab308",
+    "#a855f7",
+    "#ec4899",
+    "#14b8a6",
+    "#f97316",
+    "#06b6d4",
+    "#84cc16",
+    "#f43f5e",
+    "#6366f1",
+  ];
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+
+      const [
+        dashboardRes,
+        salesRes,
+        profitRes,
+        regionsRes,
+        productsRes,
+      ] = await Promise.all([
+        fetch(
+          "http://127.0.0.1:8000/api/analytics/dashboard/"
+        ),
+        fetch(
+          "http://127.0.0.1:8000/api/analytics/sales/"
+        ),
+        fetch(
+          "http://127.0.0.1:8000/api/analytics/profit/"
+        ),
+        fetch(
+          "http://127.0.0.1:8000/api/analytics/regions/"
+        ),
+        fetch(
+          "http://127.0.0.1:8000/api/analytics/products/"
+        ),
+      ]);
+
+      if (
+        !dashboardRes.ok ||
+        !salesRes.ok ||
+        !profitRes.ok ||
+        !regionsRes.ok ||
+        !productsRes.ok
+      ) {
+        throw new Error(
+          "Failed to fetch dashboard data"
+        );
+      }
+
+      const dashboardJson =
+        await dashboardRes.json();
+
+      const salesJson =
+        await salesRes.json();
+
+      const profitJson =
+        await profitRes.json();
+
+      const regionsJson =
+        await regionsRes.json();
+
+      const productsJson =
+        await productsRes.json();
+
+      setDashboardData(dashboardJson);
+      setSalesData(salesJson);
+      setProfitData(profitJson);
+      setRegionsData(regionsJson);
+      setProductsData(productsJson);
+
+      generateAISummary(
+        dashboardJson,
+        salesJson,
+        profitJson
+      );
+    } catch (err) {
+      console.error(err);
+
+      setError(
+        "Unable to load dashboard."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+  const GEMINI_API_KEY =
+  import.meta.env
+    .VITE_GEMINI_API_KEY;
+
+  const generateAISummary = async (
+    dashboard,
+    sales,
+    profit
+  ) => {
+    try {
+      const prompt = `
+      Analyze this sales dataset and provide a 200 word business summary.
+
+      Dashboard:
+      ${JSON.stringify(dashboard)}
+
+      Sales:
+      ${JSON.stringify(sales)}
+
+      Profit:
+      ${JSON.stringify(profit)}
+      `;
+
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
+          }),
+        }
+      );
 
       const data =
         await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            data?.detail ||
-            'API request failed.'
-        );
-      }
+      const text =
+        data?.candidates?.[0]?.content
+          ?.parts?.[0]?.text;
 
-      return data;
-    };
-
-  /*
-    LOAD DASHBOARD
-  */
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData =
-    async () => {
-      try {
-        setLoading(true);
-
-        setError('');
-
-        /*
-          FETCH ALL ANALYTICS APIs
-        */
-
-        const [
-          dashboardRes,
-          salesRes,
-          profitRes,
-          regionsRes,
-          productsRes,
-        ] = await Promise.all([
-          fetchJson(
-            `${API_BASE}/analytics/dashboard/`
-          ),
-
-          fetchJson(
-            `${API_BASE}/analytics/sales/`
-          ),
-
-          fetchJson(
-            `${API_BASE}/analytics/profit/`
-          ),
-
-          fetchJson(
-            `${API_BASE}/analytics/regions/`
-          ),
-
-          fetchJson(
-            `${API_BASE}/analytics/products/`
-          ),
-        ]);
-
-        /*
-          GEMINI SUMMARY ENDPOINT
-        */
-
-        let aiSummary =
-          '';
-
-        try {
-          const summaryRes =
-            await fetchJson(
-              `${API_BASE}/analytics/summary/`
-            );
-
-          aiSummary =
-            summaryRes.summary ||
-            '';
-        } catch (summaryError) {
-          console.error(
-            'Summary Error:',
-            summaryError
-          );
-
-          aiSummary =
-            'AI summary unavailable.';
-        }
-
-        /*
-          NORMALIZE BACKEND DATA
-        */
-
-        const normalized =
-          {
-            kpis:
-              dashboardRes?.kpis ||
-              {},
-
-            sales:
-              Array.isArray(
-                salesRes
-              )
-                ? salesRes
-                : salesRes?.data ||
-                  salesRes?.results ||
-                  [],
-
-            profit:
-              Array.isArray(
-                profitRes
-              )
-                ? profitRes
-                : profitRes?.data ||
-                  profitRes?.results ||
-                  [],
-
-            regions:
-              Array.isArray(
-                regionsRes
-              )
-                ? regionsRes
-                : regionsRes?.data ||
-                  regionsRes?.results ||
-                  [],
-
-            products:
-              Array.isArray(
-                productsRes
-              )
-                ? productsRes
-                : productsRes?.data ||
-                  productsRes?.results ||
-                  [],
-
-            summary:
-              aiSummary,
-          };
-
-        setDashboardData(
-          normalized
-        );
-
-        setSummary(aiSummary);
-      } catch (err) {
-        console.error(err);
-
-        setError(
-          err.message ||
-            'Dashboard fetch failed.'
-        );
-      } finally {
-        setLoading(false);
-
-        setSummaryLoading(
-          false
-        );
-      }
-    };
-
-  /*
-    EXPORT PDF
-  */
-
-  const exportPdf =
-    async () => {
-      if (!dashboardRef.current)
-        return;
-
-      const canvas =
-        await html2canvas(
-          dashboardRef.current,
-          {
-            scale: 2,
-            useCORS: true,
-            backgroundColor:
-              '#020617',
-          }
-        );
-
-      const imgData =
-        canvas.toDataURL(
-          'image/png'
-        );
-
-      const pdf = new jsPDF(
-        'p',
-        'mm',
-        'a4'
+      setAiSummary(
+        text ||
+          "AI summary unavailable."
       );
+    } catch (err) {
+      console.error(err);
 
-      /*
-        COVER PAGE
-      */
-
-      pdf.setFillColor(
-        2,
-        6,
-        23
+      setAiSummary(
+        "Failed to generate AI summary."
       );
+    }
+  };
 
-      pdf.rect(
-        0,
-        0,
-        210,
-        297,
-        'F'
-      );
+ const exportPDF = () => {
+  window.print();
+};
 
-      pdf.setTextColor(
-        255,
-        255,
-        255
-      );
+  const exportCSV = () => {
+    const rows = [
+      [
+        "Total Sales",
+        dashboardData?.total_sales,
+      ],
+      [
+        "Total Profit",
+        profitData?.total_profit,
+      ],
+      [
+        "Profit Margin",
+        profitData?.profit_margin,
+      ],
+    ];
 
-      pdf.setFontSize(30);
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      rows
+        .map((row) => row.join(","))
+        .join("\n");
 
-      pdf.text(
-        'Sales Lens Report',
-        20,
-        40
-      );
+    const encodedUri =
+      encodeURI(csvContent);
 
-      pdf.setFontSize(14);
+    const link =
+      document.createElement("a");
 
-      pdf.text(
-        'AI-Powered Sales Analytics',
-        20,
-        58
-      );
+    link.setAttribute(
+      "href",
+      encodedUri
+    );
 
-      pdf.text(
-        `Generated: ${new Date().toLocaleString()}`,
-        20,
-        72
-      );
+    link.setAttribute(
+      "download",
+      "kpi-summary.csv"
+    );
 
-      /*
-        AI SUMMARY PAGE
-      */
+    document.body.appendChild(link);
 
-      pdf.addPage();
+    link.click();
+  };
 
-      pdf.setFillColor(
-        2,
-        6,
-        23
-      );
-
-      pdf.rect(
-        0,
-        0,
-        210,
-        297,
-        'F'
-      );
-
-      pdf.setTextColor(
-        255,
-        255,
-        255
-      );
-
-      pdf.setFontSize(22);
-
-      pdf.text(
-        'AI Executive Summary',
-        20,
-        30
-      );
-
-      pdf.setFontSize(12);
-
-      const summaryLines =
-        pdf.splitTextToSize(
-          summary,
-          170
-        );
-
-      pdf.text(
-        summaryLines,
-        20,
-        50
-      );
-
-      /*
-        DASHBOARD PAGE
-      */
-
-      pdf.addPage();
-
-      pdf.setFillColor(
-        2,
-        6,
-        23
-      );
-
-      pdf.rect(
-        0,
-        0,
-        210,
-        297,
-        'F'
-      );
-
-      pdf.addImage(
-        imgData,
-        'PNG',
-        8,
-        8,
-        194,
-        281
-      );
-
-      pdf.save(
-        'sales-lens-report.pdf'
-      );
-    };
-
-  /*
-    EXPORT KPI CSV
-  */
-
-  const exportCsv =
-    () => {
-      if (!dashboardData)
-        return;
-
-      const rows = [
-        ['Metric', 'Value'],
-
-        [
-          'Total Revenue',
-          dashboardData.kpis
-            ?.total_revenue,
-        ],
-
-        [
-          'Total Profit',
-          dashboardData.kpis
-            ?.total_profit,
-        ],
-
-        [
-          'Orders',
-          dashboardData.kpis
-            ?.orders,
-        ],
-
-        [
-          'Profit Margin',
-          dashboardData.kpis
-            ?.profit_margin,
-        ],
-      ];
-
-      const csv =
-        rows
-          .map((row) =>
-            row.join(',')
-          )
-          .join('\n');
-
-      const blob =
-        new Blob([csv], {
-          type: 'text/csv;charset=utf-8;',
-        });
-
-      const url =
-        URL.createObjectURL(
-          blob
-        );
-
-      const link =
-        document.createElement(
-          'a'
-        );
-
-      link.href = url;
-
-      link.download =
-        'sales-kpis.csv';
-
-      link.click();
-
-      URL.revokeObjectURL(
-        url
-      );
-    };
-
-  /*
-    LOADING STATE
-  */
+  const monthlySales = useMemo(
+    () =>
+      salesData?.monthly_sales || [],
+    [salesData]
+  );
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#020617] text-white">
-        <div className="flex items-center gap-3 text-lg">
-          <Loader2 className="h-6 w-6 animate-spin text-cyan-300" />
-
-          Loading dashboard...
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-[#020617]">
+        <div className="h-16 w-16 animate-spin rounded-full border-4 border-cyan-400 border-t-transparent" />
       </div>
     );
   }
-
-  /*
-    ERROR STATE
-  */
 
   if (error) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#020617] px-6 text-center text-white">
-        <AlertTriangle className="h-14 w-14 text-red-400" />
-
-        <h2 className="text-3xl font-semibold">
-          Dashboard Error
-        </h2>
-
-        <p className="max-w-xl text-white/60">
-          {error}
-        </p>
+      <div className="flex min-h-screen items-center justify-center bg-[#020617] text-red-400">
+        {error}
       </div>
     );
   }
-
-  /*
-    NO DATA
-  */
-
-  if (!dashboardData) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#020617] text-white/50">
-        No analytics data
-        available.
-      </div>
-    );
-  }
-
-  const {
-    kpis,
-    sales,
-    profit,
-    regions,
-    products,
-  } = dashboardData;
-
-  const pieColors = [
-    '#22d3ee',
-    '#06b6d4',
-    '#0ea5e9',
-    '#0891b2',
-    '#155e75',
-  ];
 
   return (
-    <section className="min-h-screen bg-[#020617] px-6 py-24 text-white">
-      <div
-        ref={dashboardRef}
-        className="mx-auto max-w-7xl"
-      >
-        {/* HEADER */}
+    <div className="min-h-screen bg-[#020617] px-4 py-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div
+          ref={dashboardRef}
+          className="space-y-8"
+        >
+          {/* HEADER */}
 
-        <div className="mb-12 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="font-retro text-cyan-300">
-              SALES ANALYTICS
-            </p>
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="font-handwritten text-4xl font-bold text-white">
+                Sales Dashboard
+              </h1>
 
-            <h1 className="mt-3 font-hero text-5xl md:text-6xl">
-              Dashboard
-            </h1>
+              <p className="font-kpi mt-2 text-white/50">
+                Real-time analytics and
+                business insights
+              </p>
+            </div>
 
-            <p className="mt-5 max-w-2xl text-white/50">
-              AI-powered business
-              intelligence dashboard
-              built using Django,
-              Snowflake, AWS S3,
-              Gemini AI, and
-              Recharts.
-            </p>
-          </div>
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={exportPDF}
+                className="font-kpi rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-500 px-6 py-3 font-semibold text-black transition hover:scale-105"
+              >
+                Export PDF
+              </button>
 
-          {/* EXPORT BUTTONS */}
-
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={exportPdf}
-              className="flex items-center gap-2 rounded-full bg-cyan-400 px-6 py-3 text-sm font-semibold text-[#020617] transition hover:scale-[1.03]"
-            >
-              <Download className="h-4 w-4" />
-
-              Export PDF
-            </button>
-
-            <button
-              onClick={exportCsv}
-              className="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-white transition hover:bg-white/[0.08]"
-            >
-              <FileDown className="h-4 w-4" />
-
-              Export CSV
-            </button>
-          </div>
-        </div>
-
-        {/* KPI SECTION */}
-
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-7 backdrop-blur-2xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-white/45">
-                  Total Revenue
-                </p>
-
-                <h2 className="mt-4 text-4xl font-bold text-cyan-300">
-                  $
-                  {kpis.total_revenue ??
-                    0}
-                </h2>
-              </div>
-
-              <DollarSign className="h-11 w-11 text-cyan-300" />
+              <button
+                onClick={exportCSV}
+                className="font-kpi rounded-2xl border border-white/10 bg-white/5 px-6 py-3 font-semibold text-white transition hover:bg-white/10"
+              >
+                Export CSV
+              </button>
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-7 backdrop-blur-2xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-white/45">
-                  Total Profit
-                </p>
+          {/* KPI */}
 
-                <h2 className="mt-4 text-4xl font-bold text-cyan-300">
-                  $
-                  {kpis.total_profit ??
-                    0}
-                </h2>
-              </div>
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+              <p className="font-kpi text-white/50">
+                Total Revenue
+              </p>
 
-              <TrendingUp className="h-11 w-11 text-cyan-300" />
+              <h2 className="mt-3 text-3xl font-bold text-white">
+                $
+                {Number(
+                  dashboardData?.total_sales
+                ).toLocaleString()}
+              </h2>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+              <p className="font-kpi text-white/50">
+                Total Profit
+              </p>
+
+              <h2 className="mt-3 text-3xl font-bold text-green-400">
+                $
+                {Number(
+                  profitData?.total_profit
+                ).toLocaleString()}
+              </h2>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+              <p className="font-kpi text-white/50">
+                Profit Margin
+              </p>
+
+              <h2 className="mt-3 text-3xl font-bold text-yellow-400">
+                {
+                  profitData?.profit_margin
+                }
+                %
+              </h2>
+            </div>
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
+              <p className="font-kpi text-white/50">
+                Total Products
+              </p>
+
+              <h2 className="mt-3 text-3xl font-bold text-pink-400">
+                {productsData.length}
+              </h2>
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-7 backdrop-blur-2xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-white/45">
-                  Orders
-                </p>
+          {/* AI SUMMARY */}
 
-                <h2 className="mt-4 text-4xl font-bold text-cyan-300">
-                  {kpis.orders ??
-                    0}
-                </h2>
-              </div>
-
-              <ShoppingCart className="h-11 w-11 text-cyan-300" />
-            </div>
-          </div>
-
-          <div className="rounded-[28px] border border-white/10 bg-white/[0.03] p-7 backdrop-blur-2xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-white/45">
-                  Profit Margin
-                </p>
-
-                <h2 className="mt-4 text-4xl font-bold text-cyan-300">
-                  {kpis.profit_margin ??
-                    0}
-                  %
-                </h2>
-              </div>
-
-              <Activity className="h-11 w-11 text-cyan-300" />
-            </div>
-          </div>
-        </div>
-
-        {/* CHARTS */}
-
-        <div className="mt-10 grid gap-8 xl:grid-cols-2">
-          {/* SALES */}
-
-          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8 backdrop-blur-2xl">
-            <h2 className="mb-6 text-2xl font-semibold">
-              Revenue Trend
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <h2 className="font-hero mb-4 text-2xl font-bold text-white">
+              AI Business Summary
             </h2>
 
-            <ResponsiveContainer
-              width="100%"
-              height={320}
-            >
-              <LineChart
-                data={sales}
+            <p className="font-kpi leading-8 text-white/70">
+              {aiSummary}
+            </p>
+          </div>
+
+          {/* REVENUE TREND */}
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <div className="mb-5">
+              <h2 className="font-kpi text-xl font-bold text-white">
+                Revenue Trend
+              </h2>
+            </div>
+
+            <div className="overflow-x-auto pb-4">
+              <div
+                style={{
+                  width: `${monthlySales.length * 90}px`,
+                  minWidth: "100%",
+                  height: "350px",
+                }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
+                  <LineChart
+                    data={monthlySales}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#ffffff15"
+                    />
 
-                <XAxis dataKey="month" />
+                    <XAxis
+                      dataKey="MONTH"
+                      angle={-35}
+                      interval={0}
+                      textAnchor="end"
+                      stroke="#d1d5db"
+                    />
+                    <XAxis
+                      dataKey="MONTH"
+                      angle={-45}
+                      interval={0}
+                      textAnchor="end"
+                      height={160}
+                      tick={{ fill: "#d1d5db", fontSize: 12 }}
+                      stroke="#d1d5db"
+                    />
+                    <YAxis
+                      stroke="#d1d5db"
+                    />
 
-                <YAxis />
+                    <Tooltip />
 
-                <Tooltip />
+                    <Legend />
 
-                <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="TOTAL_SALES"
+                      stroke="#06b6d4"
+                      strokeWidth={3}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
 
-                <Line
-                  type="monotone"
-                  dataKey="sales"
-                  stroke="#22d3ee"
-                  strokeWidth={3}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          {/* REGIONS */}
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <h2 className="font-kpi mb-5 text-xl font-bold text-white">
+              Regional Breakdown
+            </h2>
+
+            <div className="h-[500px]">
+              <ResponsiveContainer
+                width="100%"
+                height="100%"
+              >
+                <PieChart>
+                  <Pie
+                    data={regionsData}
+                    dataKey="TOTAL_SALES"
+                    nameKey="REGION"
+                    outerRadius={140}
+                    label
+                  >
+                    {regionsData.map(
+                      (
+                        entry,
+                        index
+                      ) => (
+                        <Cell
+                          key={index}
+                          fill={
+                            COLORS[
+                              index %
+                                COLORS.length
+                            ]
+                          }
+                        />
+                      )
+                    )}
+                  </Pie>
+
+                  <Tooltip />
+
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* PRODUCTS */}
 
-          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8 backdrop-blur-2xl">
-            <h2 className="mb-6 text-2xl font-semibold">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <h2 className="font-kpi mb-5 text-xl font-bold text-white">
               Top Products
             </h2>
 
-            <ResponsiveContainer
-              width="100%"
-              height={320}
-            >
-              <BarChart
-                data={products}
+            <div className="overflow-x-auto pb-4">
+              <div
+                style={{
+                  width: `${productsData.length * 140}px`,
+                  minWidth: "100%",
+                  height: "420px",
+                }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-
-                <XAxis dataKey="product" />
-
-                <YAxis />
-
-                <Tooltip />
-
-                <Legend />
-
-                <Bar
-                  dataKey="sales"
-                  fill="#22d3ee"
-                  radius={[
-                    10,
-                    10,
-                    0,
-                    0,
-                  ]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* SECOND ROW */}
-
-        <div className="mt-10 grid gap-8 xl:grid-cols-2">
-          {/* REGIONS */}
-
-          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8 backdrop-blur-2xl">
-            <h2 className="mb-6 text-2xl font-semibold">
-              Regional Breakdown
-            </h2>
-
-            <ResponsiveContainer
-              width="100%"
-              height={320}
-            >
-              <PieChart>
-                <Pie
-                  data={regions}
-                  dataKey="sales"
-                  nameKey="region"
-                  outerRadius={110}
-                  label
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
                 >
-                  {regions.map(
-                    (
-                      item,
-                      index
-                    ) => (
-                      <Cell
-                        key={
+                  <BarChart
+                    data={productsData}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#ffffff12"
+                    />
+
+                    <XAxis
+                      dataKey="PRODUCT"
+                      angle={-35}
+                      interval={0}
+                      textAnchor="end"
+                      stroke="#d1d5db"
+                    />
+                    <XAxis
+                      dataKey="PRODUCT"
+                      angle={-45}
+                      interval={0}
+                      textAnchor="end"
+                      height={160}
+                      tick={{ fill: "#d1d5db", fontSize: 12 }}
+                      stroke="#d1d5db"
+                    />
+
+                    <YAxis
+                      stroke="#d1d5db"
+                    />
+
+                    <Tooltip />
+
+                    <Legend />
+
+                    <Bar
+                      dataKey="TOTAL_SALES"
+                      radius={[
+                        10,
+                        10,
+                        0,
+                        0,
+                      ]}
+                      barSize={18}
+                      fill="#3b82f6"
+                    >
+                      {productsData.map(
+                        (
+                          entry,
                           index
-                        }
-                        fill={
-                          pieColors[
-                            index %
-                              pieColors.length
-                          ]
-                        }
-                      />
-                    )
-                  )}
-                </Pie>
-
-                <Tooltip />
-
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+                        ) => (
+                          <Cell
+                            key={index}
+                            fill={
+                              COLORS[
+                                index %
+                                  COLORS.length
+                              ]
+                            }
+                          />
+                        )
+                      )}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
 
-          {/* PROFIT */}
+          {/* SALES VS PROFIT */}
 
-          <div className="rounded-[32px] border border-white/10 bg-white/[0.03] p-8 backdrop-blur-2xl">
-            <h2 className="mb-6 text-2xl font-semibold">
-              Profit Comparison
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
+            <h2 className="font-kpi mb-5 text-xl font-bold text-white">
+              Sales vs Profit
             </h2>
 
-            <ResponsiveContainer
-              width="100%"
-              height={320}
-            >
-              <LineChart
-                data={profit}
+            <div className="overflow-x-auto pb-4">
+              <div
+                style={{
+                  width: `${productsData.length * 150}px`,
+                  minWidth: "100%",
+                  height: "420px",
+                }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
+                  <BarChart
+                    data={productsData}
+                    
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#ffffff12"
+                    />
 
-                <XAxis dataKey="month" />
+                    <XAxis
+                      dataKey="PRODUCT"
+                      angle={-35}
+                      interval={0}
+                      textAnchor="end"
+                      stroke="#d1d5db"
+                    />
+                    <XAxis
+                      dataKey="PRODUCT"
+                      angle={-45}
+                      interval={0}
+                      textAnchor="end"
+                      height={160}
+                      tick={{ fill: "#d1d5db", fontSize: 12 }}
+                      stroke="#d1d5db"
+                    />
+                    <YAxis
+                      stroke="#d1d5db"
+                    />
 
-                <YAxis />
+                    <Tooltip />
 
-                <Tooltip />
+                    <Legend />
 
-                <Legend />
+                    <Bar
+                      dataKey="TOTAL_SALES"
+                      fill="#3b82f6"
+                      barSize={14}
+                      radius={[
+                        8,
+                        8,
+                        0,
+                        0,
+                      ]}
+                    />
 
-                <Line
-                  type="monotone"
-                  dataKey="sales"
-                  stroke="#22d3ee"
-                  strokeWidth={3}
-                />
-
-                <Line
-                  type="monotone"
-                  dataKey="profit"
-                  stroke="#14b8a6"
-                  strokeWidth={3}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+                    <Bar
+                      dataKey="TOTAL_PROFIT"
+                      fill="#22c55e"
+                      barSize={14}
+                      radius={[
+                        8,
+                        8,
+                        0,
+                        0,
+                      ]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* AI SUMMARY */}
-
-        <div className="mt-10 rounded-[32px] border border-white/10 bg-white/[0.03] p-8 backdrop-blur-2xl">
-          <div className="mb-5 flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-400/10">
-              <Sparkles className="h-7 w-7 text-cyan-300" />
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-semibold">
-                AI Executive Summary
-              </h2>
-
-              <p className="text-sm text-white/45">
-                Gemini AI generated
-                report insights
-              </p>
-            </div>
-          </div>
-
-          {summaryLoading ? (
-            <div className="flex items-center gap-3 text-white/60">
-              <Loader2 className="h-5 w-5 animate-spin" />
-
-              Generating AI
-              summary...
-            </div>
-          ) : (
-            <p className="leading-relaxed text-white/70">
-              {summary}
-            </p>
-          )}
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
