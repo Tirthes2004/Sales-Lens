@@ -5,7 +5,7 @@ export const uploadFileToBackend = async (
 ) => {
   try {
     const response = await fetch(
-      'http://localhost:8000/upoloads',
+      'http://localhost:8000/api/upoload',
       {
         method: 'POST',
 
