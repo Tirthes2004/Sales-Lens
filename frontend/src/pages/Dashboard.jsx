@@ -6,6 +6,8 @@ import {
   useState,
 } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 import {
   ResponsiveContainer,
   LineChart,
@@ -25,6 +27,8 @@ import {
 
 const Dashboard = () => {
   const dashboardRef = useRef(null);
+
+  const navigate = useNavigate();
 
   const [loading, setLoading] =
     useState(true);
@@ -648,6 +652,14 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      <div className="mt-10 flex justify-end">
+          <button
+            onClick={() => navigate("/")}
+            className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-6 py-3 text-sm font-semibold text-cyan-300 backdrop-blur-xl transition hover:scale-105 hover:bg-cyan-400/20"
+          >
+             Go Back
+          </button>
+        </div>
     </div>
   );
 };

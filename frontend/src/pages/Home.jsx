@@ -44,7 +44,7 @@ const Home = () => {
         <HeroSection />
       </section>
 
-      {/* Metrics Section */}
+      {/* Metrics Section 
       <section className="relative z-10 mx-auto grid max-w-7xl gap-6 px-6 pb-20 md:grid-cols-3 lg:px-8">
         {metrics.map((item) => (
           <div
@@ -60,7 +60,7 @@ const Home = () => {
             </p>
           </div>
         ))}
-      </section>
+      </section>*/}
 
       {/* About */}
       <About />
