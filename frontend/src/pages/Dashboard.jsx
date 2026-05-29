@@ -133,7 +133,9 @@ const Dashboard = () => {
       generateAISummary(
         dashboardJson,
         salesJson,
-        profitJson
+        profitJson,
+        regionsJson,
+        productsJson
       );
     } catch (err) {
       console.error(err);
@@ -146,73 +148,51 @@ const Dashboard = () => {
     }
   };
 
-  {/*no api_key through frontend this will be refactored later*/}
-  const GEMINI_API_KEY =
-  import.meta.env
-    .VITE_GEMINI_API_KEY;
+  {/*no api_key through frontend this is refactored via backend . here /ai-summary only example for now .*/}
+  const generateAISummary =
+    async (
+      dashboardJson,
+      salesJson,
+      profitJson,
+      regionsJson,
+      productsJson
+    ) => {
+      try {
+        const response =
+          await fetch(
+            "http://127.0.0.1:8000/api/analytics/ai-summary/",
+            {
+              method: "POST",
 
-  const generateAISummary = async (
-    dashboard,
-    sales,
-    profit
-  ) => {
-    try {
-      const prompt = `
-      Analyze this sales dataset and provide a 200 word business summary.
-
-      Dashboard:
-      ${JSON.stringify(dashboard)}
-
-      Sales:
-      ${JSON.stringify(sales)}
-
-      Profit:
-      ${JSON.stringify(profit)}
-      `;
-
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: prompt,
-                  },
-                ],
+              headers: {
+                "Content-Type":
+                  "application/json",
               },
-            ],
-          }),
-        }
-      );
 
-      const data =
-        await response.json();
+              body: JSON.stringify({
+                dashboardJson,
+                salesJson,
+                profitJson,
+                regionsJson,
+                productsJson,
+              }),
+            }
+          );
 
-      const text =
-        data?.candidates?.[0]?.content
-          ?.parts?.[0]?.text;
+        const data =
+          await response.json();
 
-      setAiSummary(
-        text ||
+        setAiSummary(
+          data.summary
+        );
+      } catch (error) {
+        console.error(error);
+
+        setAiSummary(
           "AI summary unavailable."
-      );
-    } catch (err) {
-      console.error(err);
-
-      setAiSummary(
-        "Failed to generate AI summary."
-      );
-    }
-  };
+        );
+      }
+    };
   
 
 
