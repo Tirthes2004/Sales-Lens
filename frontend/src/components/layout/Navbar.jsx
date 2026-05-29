@@ -90,7 +90,8 @@ const Navbar = () => {
             </nav>
 
             {/* right section in dev */}
-            <div className="hidden items-center gap-3 md:flex">
+            {/* authentication button for future dev */}
+            {/*<div className="hidden items-center gap-3 md:flex">
               <button className="font-kpi rounded-full bg-white/[0.04] px-5 py-2 text-sm font-medium text-white/80 transition hover:bg-white/[0.08] border">
                 Login
               </button>
@@ -98,7 +99,7 @@ const Navbar = () => {
               <button className="font-kpi rounded-full bg-cyan-400 px-5 py-2 text-sm font-semibold text-[#020617] transition hover:scale-[1.03]">
                 Sign Up
               </button>
-            </div>
+            </div>*/}
 
             {/* for mobile view  */}
             <button

@@ -37,12 +37,12 @@ const Contact = () => {
             {
               icon: Phone,
               title: 'Phone',
-              value: '+91 9876543210',
+              value: '+91 9800000000',
             },
             {
               icon: MapPin,
               title: 'Location',
-              value: 'Kolkata, India',
+              value: 'Kolkata, West Bengal, India',
             },
           ].map((item) => {
             const Icon = item.icon;

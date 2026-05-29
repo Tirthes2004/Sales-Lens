@@ -113,7 +113,7 @@ const MobileSidebar = ({
             </div>
 
             {/* authentication button for future dev */}
-            <div className="mt-auto space-y-3 pt-10">
+            {/*<div className="mt-auto space-y-3 pt-10">
               <button className="font-kpi w-full rounded-2xl bg-white/5 py-4 text-sm font-medium text-white/80 border">
                 Login
               </button>
@@ -121,7 +121,7 @@ const MobileSidebar = ({
               <button className="font-kpi w-full rounded-2xl bg-cyan-400 py-4 text-sm font-semibold text-[#020617]">
                 Sign Up
               </button>
-            </div>
+            </div>*/}
           </motion.div>
         </div>
       )}

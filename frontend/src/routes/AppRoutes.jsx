@@ -9,6 +9,8 @@ import Home from '../pages/Home';
 
 import Dashboard from '../pages/Dashboard';
 
+import UploadsPage from "../pages/UploadsPage";
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -21,6 +23,11 @@ const AppRoutes = () => {
         <Route
           path="/dashboard"
           element={<Dashboard />}
+        />
+
+        <Route
+          path="/uploads"
+          element={<UploadsPage />}
         />
       </Routes>
     </BrowserRouter>

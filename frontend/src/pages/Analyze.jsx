@@ -1,5 +1,3 @@
-// src/pages/Analyze.jsx
-
 import { useRef, useState } from 'react';
 
 import {

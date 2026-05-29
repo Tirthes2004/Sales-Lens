@@ -1,5 +1,4 @@
 
-
 import {
   useEffect,
   useMemo,
@@ -146,6 +145,8 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  {/*no api_key through frontend this will be refactored later*/}
   const GEMINI_API_KEY =
   import.meta.env
     .VITE_GEMINI_API_KEY;
@@ -212,6 +213,8 @@ const Dashboard = () => {
       );
     }
   };
+  
+
 
  const exportPDF = () => {
   window.print();
@@ -289,7 +292,7 @@ const Dashboard = () => {
           ref={dashboardRef}
           className="space-y-8"
         >
-          {/* HEADER */}
+          {/* header of dashboard */}
 
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -320,7 +323,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* KPI */}
+          {/* kpi cards */}
 
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-3xl border border-white/10 bg-white/5 p-5 backdrop-blur-xl">
@@ -373,7 +376,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* AI SUMMARY */}
+          {/* ai summary which will be in future */}
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
             <h2 className="font-hero mb-4 text-2xl font-bold text-white">
@@ -385,7 +388,7 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* REVENUE TREND */}
+          {/* revenue trend chart */}
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
             <div className="mb-5">
@@ -451,7 +454,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* REGIONS */}
+          {/* regional breakdown pie chart */}
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
             <h2 className="font-kpi mb-5 text-xl font-bold text-white">
@@ -497,7 +500,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* PRODUCTS */}
+          {/* top products bar charts */}
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
             <h2 className="font-kpi mb-5 text-xl font-bold text-white">
@@ -583,7 +586,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* SALES VS PROFIT */}
+          {/* sales vs profit barchart */}
 
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl">
             <h2 className="font-kpi mb-5 text-xl font-bold text-white">
@@ -668,5 +671,6 @@ const Dashboard = () => {
     </div>
   );
 };
+{/*all charts are made using recharts*/}
 
 export default Dashboard;

@@ -1,8 +1,12 @@
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { useNavigate } from "react-router-dom";
+
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
+    
     <section
       id="home"
       className="relative flex min-h-screen items-center overflow-hidden pt-[72px]"
@@ -61,13 +65,26 @@ const HeroSection = () => {
             transition={{ duration: 0.9 }}
             className="mt-8 flex flex-col gap-4 sm:flex-row"
           >
-            <button className="group flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#020617] transition hover:scale-[1.03]">
+            <button onClick={() => {
+                    const section =
+                      document.getElementById(
+                        "analyze"
+                      );
+
+                    if (section) {
+                      section.scrollIntoView({
+                        behavior: "smooth",
+                      });
+                    }
+                  }} className="group flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#020617] transition hover:scale-[1.03]">
               Start Analyzing
 
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </button>
 
-            <button className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-white/10">
+            <button onClick={() =>
+                    navigate("/uploads")
+                  } className="rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold backdrop-blur-xl transition hover:border-cyan-400/30 hover:bg-white/10">
               Explore Dashboard
             </button>
           </motion.div>
