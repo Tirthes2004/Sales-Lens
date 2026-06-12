@@ -1,10 +1,10 @@
 # Sales Analytics Pipeline Backend
 
-A simple backend-only sales analytics pipeline built with Django REST Framework, AWS S3, Pandas, Snowflake, and Power BI.
+A Django REST Framework backend for the SalesLens analytics pipeline. It accepts CSV/XLSX sales uploads, stores the raw file in AWS S3, cleans and transforms the data with Pandas, replaces the current Snowflake `sales` dataset, exposes analytics APIs, and can generate an AI executive summary with Gemini.
 
-No authentication, no JWT, no login/register, no Docker, and no frontend code are included.
+No authentication, no JWT, no login/register, and no Docker are included.
 
-## 1. requirements.txt
+## 1. Requirements
 
 Install the project dependencies:
 
@@ -19,6 +19,7 @@ Main packages:
 - boto3 for AWS S3 uploads
 - snowflake-connector-python for Snowflake loading and analytics queries
 - python-decouple for reading `.env` variables
+- Python standard library `urllib` for Gemini REST API calls
 
 ## 2. Project Setup
 
@@ -48,7 +49,7 @@ Run the development server:
 python manage.py runserver
 ```
 
-## 3. .env
+## 3. Environment Variables
 
 The `.env` file stores local configuration and secrets. Replace the placeholder values before running uploads.
 
@@ -57,37 +58,40 @@ Required variables:
 ```env
 SECRET_KEY=change-this-secret-key
 DEBUG=True
+
 AWS_ACCESS_KEY_ID=your-aws-access-key-id
 AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
 AWS_STORAGE_BUCKET_NAME=your-s3-bucket-name
 AWS_S3_REGION_NAME=us-east-1
+
 SNOWFLAKE_USER=your-snowflake-user
 SNOWFLAKE_PASSWORD=your-snowflake-password
 SNOWFLAKE_ACCOUNT=your-snowflake-account
 SNOWFLAKE_WAREHOUSE=your-snowflake-warehouse
 SNOWFLAKE_DATABASE=your-snowflake-database
 SNOWFLAKE_SCHEMA=PUBLIC
+
+GEMINI_API_KEY=your-gemini-api-key
+GEMINI_MODEL=gemini-2.5-flash-lite
 ```
 
-## 4. .env.example
+`GEMINI_MODEL` is optional. If it is not provided, the backend uses the default configured in `sales_analytics/settings.py`.
 
-`.env.example` is committed as a safe template. Copy it to `.env` when setting up a new machine.
+After changing `.env`, restart Django so the new values are loaded.
 
-## 5. .gitignore
-
-The `.gitignore` keeps secrets, local databases, Python cache files, logs, virtual environments, and media files out of Git.
-
-## 6. settings.py
+## 4. Django Settings
 
 `sales_analytics/settings.py` configures:
 
 - Django REST Framework
-- SQLite for simple local metadata storage
-- S3 environment variables
+- CORS
+- SQLite for local upload metadata
+- AWS S3 environment variables
 - Snowflake environment variables
+- Gemini environment variables
 - no default authentication for API views
 
-## 7. models.py
+## 5. Upload Metadata
 
 `uploads/models.py` contains `SalesUpload`, which stores:
 
@@ -99,14 +103,9 @@ The `.gitignore` keeps secrets, local databases, Python cache files, logs, virtu
 - error message
 - upload and processed timestamps
 
-## 8. serializers.py
+The local upload history is not cleared when new files are uploaded.
 
-`uploads/serializers.py` contains:
-
-- `FileUploadSerializer` for validating CSV/XLSX uploads
-- `SalesUploadSerializer` for returning upload metadata
-
-## 9. AWS S3 Integration
+## 6. AWS S3 Integration
 
 `services/s3_service.py` uploads the original file to S3 using boto3.
 
@@ -116,7 +115,9 @@ Uploaded files are stored under:
 sales-uploads/<upload_id>/<generated-file-id>.<extension>
 ```
 
-## 10. ETL Processing
+S3 keeps the raw uploaded files. Replacing Snowflake data does not delete old S3 files.
+
+## 7. ETL Processing
 
 `services/etl_service.py` uses Pandas to:
 
@@ -148,7 +149,7 @@ cogs or total_cost -> cost
 gross_income or net_profit -> profit
 ```
 
-If `cost` is missing, the ETL loads the report with `cost = 0`. This keeps revenue-only reports usable, but profit will equal sales unless the file includes cost or profit data.
+If `region` is missing, the ETL sets it to `Unknown`. If `cost` is missing, the ETL loads the report with `cost = 0`.
 
 Profit formula:
 
@@ -157,18 +158,35 @@ profit = total_sales - cost
 profit_margin = profit / total_sales * 100
 ```
 
-## 11. Snowflake Integration
+## 8. Snowflake Integration
 
 `services/snowflake_service.py`:
 
 - connects to Snowflake
 - creates the `sales` table if it does not exist
-- inserts processed rows
+- replaces existing `sales` rows with the latest uploaded file data
 - runs analytics queries
+
+Important behavior:
+
+- Each successful upload clears the existing Snowflake `sales` table data and inserts only the newly processed file rows.
+- Upload metadata in SQLite is not cleared.
+- Raw files already uploaded to S3 are not deleted.
 
 Before using the API, make sure the Snowflake warehouse, database, and schema already exist.
 
-## 12. Analytics APIs
+To verify the latest upload:
+
+```sql
+SELECT COUNT(*) FROM SALES;
+
+SELECT *
+FROM SALES
+ORDER BY LOADED_AT DESC
+LIMIT 20;
+```
+
+## 9. APIs
 
 Upload APIs:
 
@@ -185,15 +203,48 @@ GET /api/analytics/sales/
 GET /api/analytics/profit/
 GET /api/analytics/regions/
 GET /api/analytics/products/
+GET /api/analytics/ai-summary/
+POST /api/analytics/ai-summary/
 ```
 
-Example file upload with curl:
+Example file upload:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/upload/ -F "file=@sales.csv"
 ```
 
-## 13. Power BI
+Example AI summary request:
+
+```bash
+curl http://127.0.0.1:8000/api/analytics/ai-summary/
+```
+
+The AI summary endpoint reads the current Snowflake `sales` table, sends a compact analytics payload to Gemini, and returns:
+
+```json
+{
+  "summary": "Executive summary text..."
+}
+```
+
+It summarizes:
+
+- transaction count
+- date range
+- total sales
+- total profit
+- profit margin
+- monthly trend
+- top products
+- regional performance when region data is available
+
+Common Gemini errors:
+
+- `404`: unsupported model name
+- `429`: quota exhausted
+- `503`: model temporarily unavailable or high demand
+
+## 10. Power BI
 
 Power BI connects directly to Snowflake:
 
@@ -207,29 +258,40 @@ Power BI connects directly to Snowflake:
 
 Dashboard refresh works like this:
 
-- This Django backend loads cleaned data into Snowflake.
-- Power BI reads the latest data from Snowflake.
+- This Django backend replaces the Snowflake `sales` table data with the latest uploaded file.
+- Power BI reads the latest current dataset from Snowflake.
 - In Power BI Service, configure the Snowflake credentials.
 - Set a scheduled refresh so reports update automatically.
-- When new sales files are uploaded and processed, the next Power BI refresh will include the new Snowflake rows.
+- When a new sales file is uploaded and processed, the next Power BI refresh will show the new file data only.
 
-## Folder Structure
+## 11. Current Workflow
 
 ```text
-sales_analytics/
-├── uploads/
-├── analytics/
-├── services/
-├── utils/
-├── .env
-├── .env.example
-├── .gitignore
-├── requirements.txt
-├── manage.py
-└── README.md
+React frontend
+-> Django REST API
+-> AWS S3 raw file storage
+-> Pandas ETL cleaning
+-> Snowflake sales table replacement
+-> Analytics APIs
+-> React dashboard / Power BI
+-> Gemini AI executive summary
 ```
 
-Actual Django layout:
+Upload flow:
+
+```text
+User uploads CSV/XLSX
+-> Django validates file
+-> Django creates SalesUpload metadata
+-> Django uploads original file to S3
+-> Django cleans/transforms data with Pandas
+-> Django creates Snowflake sales table if needed
+-> Django deletes old Snowflake sales rows
+-> Django inserts latest file rows
+-> Django marks upload as processed
+```
+
+## 12. Folder Structure
 
 ```text
 .

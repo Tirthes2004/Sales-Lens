@@ -101,3 +101,6 @@ SNOWFLAKE_ACCOUNT = config("SNOWFLAKE_ACCOUNT", default="")
 SNOWFLAKE_WAREHOUSE = config("SNOWFLAKE_WAREHOUSE", default="")
 SNOWFLAKE_DATABASE = config("SNOWFLAKE_DATABASE", default="")
 SNOWFLAKE_SCHEMA = config("SNOWFLAKE_SCHEMA", default="PUBLIC")
+
+GEMINI_API_KEY = config("GEMINI_API_KEY", default="")
+GEMINI_MODEL = config("GEMINI_MODEL", default="gemini-2.0-flash")
