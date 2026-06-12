@@ -45,7 +45,7 @@ const Dashboard = () => {
   const [profitData, setProfitData] =
     useState(null);
 
-  const [regionsData, setRegionsData] =
+  const [filteredRegionsData, setRegionsData] =
     useState([]);
 
   const [productsData, setProductsData] =
@@ -128,10 +128,17 @@ const Dashboard = () => {
       const productsJson =
         await productsRes.json();
 
+      const filteredRegionsData = regionsJson.filter(
+        (regionJson) =>
+          regionJson.REGION &&
+          regionJson.REGION.trim().toLowerCase() !==
+            "Unknown"
+      );  
+
       setDashboardData(dashboardJson);
       setSalesData(salesJson);
       setProfitData(profitJson);
-      setRegionsData(regionsJson);
+      setRegionsData(filteredRegionsData);
       setProductsData(productsJson);
 
       generateAISummary(
@@ -452,13 +459,13 @@ const Dashboard = () => {
               >
                 <PieChart>
                   <Pie
-                    data={regionsData}
+                    data={filteredRegionsData}
                     dataKey="TOTAL_SALES"
                     nameKey="REGION"
                     outerRadius={140}
                     label
                   >
-                    {regionsData.map(
+                    {filteredRegionsData.map(
                       (
                         entry,
                         index
