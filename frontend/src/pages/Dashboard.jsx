@@ -54,6 +54,8 @@ const Dashboard = () => {
   const [aiSummary, setAiSummary] =
     useState("");
 
+  const [summaryLoading, setSummaryLoading] = useState(false);  
+
   const COLORS = [
     "#ef4444",
     "#22c55e",
@@ -71,6 +73,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboard();
+    fetchAISummary();
   }, []);
 
   const fetchDashboard = async () => {
@@ -141,13 +144,7 @@ const Dashboard = () => {
       setRegionsData(filteredRegionsData);
       setProductsData(productsJson);
 
-      generateAISummary(
-        dashboardJson,
-        salesJson,
-        profitJson,
-        regionsJson,
-        productsJson
-      );
+      
     } catch (err) {
       console.error(err);
 
@@ -160,51 +157,33 @@ const Dashboard = () => {
   };
 
   {/*no api_key through frontend this is refactored via backend . here /ai-summary only example for now .*/}
-  const generateAISummary =
-    async (
-      dashboardJson,
-      salesJson,
-      profitJson,
-      regionsJson,
-      productsJson
-    ) => {
-      try {
-        const response =
-          await fetch(
-            "http://127.0.0.1:8000/api/analytics/ai-summary/",
-            {
-              method: "POST",
+  const fetchAISummary = async () => {
+  try {
+    setSummaryLoading(true);
 
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
+    const response = await fetch(
+      "http://127.0.0.1:8000/api/analytics/ai-summary/"
+    );
 
-              body: JSON.stringify({
-                dashboardJson,
-                salesJson,
-                profitJson,
-                regionsJson,
-                productsJson,
-              }),
-            }
-          );
+    if (!response.ok) {
+      throw new Error("Failed to fetch AI summary");
+    }
 
-        const data =
-          await response.json();
+    const data = await response.json();
 
-        setAiSummary(
-          data.summary
-        );
-      } catch (error) {
-        console.error(error);
-
-        setAiSummary(
-          "AI summary unavailable."
-        );
-      }
-    };
-  
+    setAiSummary(
+      data.summary ||
+      data.ai_summary ||
+      data.message ||
+      ""
+    );
+  } catch (error) {
+    console.error(error);
+    setAiSummary("Unable to generate AI summary.");
+  } finally {
+    setSummaryLoading(false);
+  }
+};
 
 
  const exportPDF = () => {
