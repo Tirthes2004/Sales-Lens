@@ -78,6 +78,56 @@ def insert_sales_rows(dataframe):
         connection.close()
 
 
+def replace_sales_rows(dataframe):
+    insert_query = """
+    INSERT INTO sales (
+        order_date,
+        region,
+        product,
+        quantity,
+        unit_price,
+        cost,
+        total_sales,
+        profit,
+        profit_margin
+    )
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    rows = [
+        (
+            row.order_date,
+            row.region,
+            row.product,
+            float(row.quantity),
+            float(row.unit_price),
+            float(row.cost),
+            float(row.total_sales),
+            float(row.profit),
+            float(row.profit_margin),
+        )
+        for row in dataframe.itertuples(index=False)
+    ]
+
+    connection = get_connection()
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        cursor.execute("DELETE FROM sales")
+
+        if rows:
+            cursor.executemany(insert_query, rows)
+
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        if cursor:
+            cursor.close()
+        connection.close()
+
+
 def execute_query(query, params=None):
     connection = get_connection()
     cursor = None

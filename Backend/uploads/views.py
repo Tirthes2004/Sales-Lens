@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from services.etl_service import process_sales_file
 from services.s3_service import upload_file_to_s3
-from services.snowflake_service import create_sales_table, insert_sales_rows
+from services.snowflake_service import create_sales_table, replace_sales_rows
 
 from .models import SalesUpload
 from .serializers import FileUploadSerializer, SalesUploadSerializer
@@ -69,7 +69,7 @@ class FileUploadView(GenericAPIView):
             # Snowflake operations
             # ---------------------------
             create_sales_table()
-            insert_sales_rows(cleaned_dataframe)
+            replace_sales_rows(cleaned_dataframe)
 
             upload.status = "processed"
             upload.rows_processed = len(cleaned_dataframe)
